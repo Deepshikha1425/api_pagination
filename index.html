@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"  crossorigin="anonymous">
+    <style>
+         #searchBar{
+            padding:0.5rem;
+            margin:1rem;
+            font-size: 1rem;
+        }
+        #search{
+            background: green;
+            font-weight:bold;
+            color:white;
+            padding:0.5rem;
+            font-size:1rem;
+            margin-right:10px;
+            width:100px;
+        }
+
+        #srch{
+            margin:auto;
+            width:100px;
+            padding:1rem;
+        }
+        #searchDiv{
+            width:200px;
+            margin:auto;
+            padding:0;
+            margin-top:-50px;
+        }
+    </style>
+</head>
+
+<body onload="disp()">
+    <h3>Records in API</h3>
+    <div id="searchDiv">
+        <input type="search" id="searchBar" placeholder="Search name for record">
+    </div>
+    <div id="srch">
+        <button id="search" onclick="filterRecords()">Search</button>
+    </div>
+    <table id="table"></table>
+<!-----------------script----------------------------->
+    <script>
+        let pageNo =  0;
+        let s = 1;
+        let roww,table,totalPages ;
+        
+    
+        let btnArrowLeft = document.createElement("button");
+        document.body.append(btnArrowLeft);
+        btnArrowLeft.id = "prev"
+        btnArrowLeft.type = "button";
+        btnArrowLeft.innerHTML = '<i class="fa fa-angle-double-left" aria-hidden="true"></i>';
+        btnArrowLeft.insertAdjacentHTML("beforebegin" , "<button id='first'></button>");
+        document.getElementById("first").innerHTML = "First";
+        document.getElementById("first").addEventListener("click" , ()=> {
+            pageNo = 1;
+            pagination();
+            document.getElementById("next").disabled = false;
+            document.getElementById("last").disabled = false;
+            document.getElementById("first").disabled = true;
+            document.getElementById("prev").disabled = true;
+            document.getElementById("btn").innerHTML = 1;
+            document.getElementById("btn1").innerHTML = 2;
+        });
+        
+        let btnArrowRight = document.createElement("button");
+        document.body.append(btnArrowRight);
+        btnArrowRight.id = "next"
+        btnArrowRight.type = "button";
+        btnArrowRight.innerHTML = '<i class="fa fa-angle-double-right" aria-hidden="true"></i>';
+        btnArrowRight.insertAdjacentHTML("beforebegin" , "<button id='btn'></button>");
+        document.getElementById("btn").insertAdjacentHTML("afterend" , "<button id='btn1'></button>")
+        document.getElementById("btn").innerHTML = pageNo+1;
+        document.getElementById("btn1").innerHTML = pageNo+2;
+        btnArrowRight.insertAdjacentHTML("afterend" , "<button id='last'></button>");
+        document.getElementById("last").innerHTML = "Last";
+       
+        if(document.getElementById("btn").innerHTML == 1)   {
+            btnArrowLeft.disabled = true;
+            document.getElementById("first").disabled = true;
+        }
+
+        document.getElementById("btn").addEventListener("click" , ()=>{
+            pageNo = +btn.innerHTML;
+            pagination();
+        })
+
+        document.getElementById("btn1").addEventListener("click" , ()=>{
+            pageNo = +btn1.innerHTML;
+            pagination();
+            if(btn1.innerHTML == 2) {
+                btnArrowLeft.disabled = false;
+                document.getElementById("first").disabled = false;
+            }
+        })
+
+        document.getElementById("next").addEventListener("click" , () => {
+            pagePlus();
+            pagination();
+
+            if(document.getElementById("btn").innerHTML >= 1)   {
+                btnArrowLeft.disabled = false;
+                document.getElementById("first").disabled = false;
+            }
+            document.getElementById("btn").innerHTML = pageNo;
+            document.getElementById("btn1").innerHTML = pageNo+1; 
+        })
+
+        document.getElementById("prev").addEventListener("click" , () => {
+            if(pageNo > 1)  {
+                pageNo--;
+            }
+
+            pagination();
+            document.getElementById("next").disabled = false;
+            document.getElementById("last").disabled = false;
+           
+            document.getElementById("btn").innerHTML = pageNo;
+            document.getElementById("btn1").innerHTML = pageNo+1; 
+            if(document.getElementById("btn").innerHTML == 1)   {
+                btnArrowLeft.disabled = true;
+                document.getElementById("first").disabled = true;
+            }
+        })
+        
+       
+        function pagination()  {
+            let url = `https://api.instantwebtools.net/v1/passenger?page=${pageNo}&size=20`;
+           
+            fetch(url).then( (response) =>  {
+                return response.json();
+            }).then ( (data)=> {
+                let totalPassengers = data.totalPassengers;
+                totalPages =  data.totalPages;
+                pagePlus = ()=> {
+                    if(pageNo < totalPages-1) {
+                        pageNo++;
+                    }else{
+                        document.getElementById("next").disabled = true; 
+                        document.getElementById("last").disabled = true;
+                    }
+                }
+                if(document.getElementById("btn").innerHTML == pageNo)  {
+                    document.getElementById("btn").style.color = "red";
+                    document.getElementById("btn1").style = "none";
+                }
+                if(document.getElementById("btn1").innerHTML == pageNo)  {
+                    document.getElementById("btn1").style.color = "red";
+                    document.getElementById("btn").style = "none";
+                }
+                return  dataa = data.data;
+            }).then ( (dataa) => {
+                table = document.getElementById("table");
+                table.border = 2 + "px solid black";
+                table.style.borderCollapse = "collapse";
+                table.style.width = 700 + "px";
+                table.style.margin = "auto";
+                table.style.marginBottom = 30 + "px";
+                table.innerHTML = "";
+                let rowHeader = table.insertRow(0);
+                rowHeader.insertCell(0).innerHTML = "<b>Sr No.</b>";
+                rowHeader.insertCell(1).innerHTML = "<b>ID</b>";
+                rowHeader.insertCell(2).innerHTML = "<b>Name</b>";
+                rowHeader.insertCell(3).innerHTML = "<b>Trips</b>";
+                rowHeader.insertCell(4).innerHTML = "<b>Airline ID</b>";
+                rowHeader.insertCell(5).innerHTML = "<b>Airline Name</b>";
+                rowHeader.insertCell(6).innerHTML = "<b>Airline Country</b>";
+                rowHeader.insertCell(7).innerHTML = "<b>Airline Logo</b>";
+                let num;
+                if(dataa.length != 0) {
+                    s = (pageNo*20)-20+1;
+                    for(let i =0; i< dataa.length; i++)   {
+                        roww = table.insertRow(-1);
+                        roww.insertCell(0).innerText = s;
+                        roww.insertCell(1).innerText = dataa[i]._id;
+                        roww.insertCell(2).innerText = dataa[i].name;
+                        roww.insertCell(3).innerText = dataa[i].trips;
+                        roww.insertCell(4).innerText = dataa[i].airline.id;
+                        roww.insertCell(5).innerText = dataa[i].airline.name;
+                        roww.insertCell(6).innerText = dataa[i].airline.country;
+                        roww.insertCell(7).innerText = dataa[i].airline.logo;
+                        s =s+1;
+                    }
+                }   
+
+                if(dataa.length == 0) {
+                    table.innerHTML = "";
+                    let rowHeader = table.insertRow(0);
+                    rowHeader.insertCell(0).innerHTML = "<b>ID</b>";
+                    rowHeader.insertCell(1).innerHTML = "<b>Name</b>";
+                    rowHeader.insertCell(2).innerHTML = "<b>Trips</b>";
+                    rowHeader.insertCell(3).innerHTML = "<b>Airline ID</b>";
+                    rowHeader.insertCell(4).innerHTML = "<b>Airline Name</b>";
+                    rowHeader.insertCell(5).innerHTML = "<b>Airline Country</b>";
+                    rowHeader.insertCell(6).innerHTML = "<b>Airline Logo</b>";
+                    roww = table.insertRow(-1);
+                    roww.insertCell(0).innerText = "No Record";
+                    roww.insertCell(1).innerText = "No Record";
+                    roww.insertCell(2).innerText = "No Record";
+                    roww.insertCell(3).innerText = "No Record";
+                    roww.insertCell(4).innerText = "No Record";
+                    roww.insertCell(5).innerText = "No Record";
+                    roww.insertCell(6).innerText = "No Record";
+                }
+           
+                document.getElementById("last").addEventListener("click" , ()=> {
+                    pageNo = totalPages;
+                    pagination();
+                    document.getElementById("btn").innerHTML = totalPages -1;
+                    document.getElementById("btn1").innerHTML = totalPages;
+                    document.getElementById("next").disabled = true;
+                    document.getElementById("last").disabled = true;
+                    document.getElementById("first").disabled = false;
+                    document.getElementById("prev").disabled = false;
+                });
+            })
+        }
+     
+        function disp()    {
+            pageNo = 1;
+            pagination()
+        }
+
+/*************************searchBar***************************************/
+
+        function filterRecords()   {
+            let searchName = document.getElementById("searchBar").value;
+            let url = "https://api.instantwebtools.net/v1/passenger";
+            fetch(url).then( (response) => {
+                return response.json();
+            }).then( (data) => {
+                let s = 1;
+                dataa = data.data;
+                let roww;
+                let table = document.getElementById("table");
+                table.style.maxWidth = 700 + "px";
+                table.style.margin = "auto";
+                table.style.marginBottom = 30 + "px";
+                table.innerHTML = "";
+                let rowHeader = table.insertRow(0);
+                rowHeader.insertCell(0).innerHTML = "<b>Sr No.</b>";
+                rowHeader.insertCell(1).innerHTML = "<b>ID</b>";
+                rowHeader.insertCell(2).innerHTML = "<b>Name</b>";
+                rowHeader.insertCell(3).innerHTML = "<b>Trips</b>";
+                rowHeader.insertCell(4).innerHTML = "<b>Airline ID</b>";
+                rowHeader.insertCell(5).innerHTML = "<b>Airline Name</b>";
+                rowHeader.insertCell(6).innerHTML = "<b>Airline Country</b>";
+                rowHeader.insertCell(7).innerHTML = "<b>Airline Logo</b>";
+                for(let index in dataa)  {
+            
+                    if(dataa[index].name == searchName) {
+                        roww = table.insertRow(-1);
+                        roww.insertCell(0).innerText = s;
+                        roww.insertCell(1).innerText = dataa[index]._id;
+                        roww.insertCell(2).innerText = dataa[index].name;
+                        roww.insertCell(3).innerText = dataa[index].trips;
+                        roww.insertCell(4).innerText = dataa[index].airline.id;
+                        roww.insertCell(5).innerText = dataa[index].airline.name;
+                        roww.insertCell(6).innerText = dataa[index].airline.country;
+                        roww.insertCell(7).innerText = dataa[index].airline.logo;
+                        s = s+1;
+                    }
+                }
+            })
+        }
+
+    </script>
+</body>
+</html>
